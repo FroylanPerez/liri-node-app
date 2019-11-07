@@ -1,8 +1,10 @@
-// require("dotenv").config();
+require("dotenv").config();
 
-// var keys = require("./keys.js");
+var keys = require("./keys.js");
 
-// var spotify = new Spotify(keys.spotify);
+var Spotify = require('node-spotify-api'); // De acuerdo a la liga q viene en la tarea
+
+var spotify = new Spotify(keys.spotify);
 
 var axios = require("axios");
 
@@ -73,12 +75,15 @@ if (action==="concert-this") {
 
     axios.get(queryUrl).then(
         function(response) {
-            var date = response.data[0].datetime;
-            var convertedDate = moment(date);
+            for (var i = 0; i < response.data.length; i++) {
 
-            console.log("Name of the venue: " + response.data[0].venue.name);
-            console.log("Venue location: " + response.data[0].venue.country);
-            console.log("Date of the Event: " + convertedDate.format("MM/DD/YYYY"));
+                var date = response.data[0].datetime;
+                var convertedDate = moment(date);
+    
+                console.log("Name of the venue: " + response.data[i].venue.name);
+                console.log("Venue location: " + response.data[i].venue.country);
+                console.log("Date of the Event: " + convertedDate.format("MM/DD/YYYY"));
+            }
         })
         .catch(function(error) {
         if (error.response) {
@@ -95,4 +100,45 @@ if (action==="concert-this") {
         }
         console.log(error.config);
         });
+}
+
+if (action==="spotify-this-song") {
+
+    var songName = "";
+
+    if (nodeArgs.length<4) {
+        songName = "The Sign"
+    }
+
+        for (var i = 3; i < nodeArgs.length; i++) {
+
+            if (i > 3 && i < nodeArgs.length) {
+            songName = songName + "+" + nodeArgs[i];
+            } else {
+            songName += nodeArgs[i];
+            }
+        }
+
+        spotify.search({ type: 'track', query: songName }, function(err, data) {
+            if (err) {
+                return console.log('Error occurred: ' + err);
+            }
+
+            if (songName==="The Sign") {
+                console.log("artist/band: " + data.tracks.items[4].album.artists[0].name); 
+                console.log("album: " + data.tracks.items[4].album.name); // nombre de cancion
+                console.log("preview link of the song from Spotify: " + data.tracks.items[4].album.external_urls.spotify);
+                console.log("song name: " + data.tracks.items[4].name);
+            }
+       
+            else {
+                for (var i = 0; i < data.tracks.items.length; i++) {
+                    console.log("artist/band: " + data.tracks.items[i].album.artists[0].name); 
+                    console.log("album: " + data.tracks.items[i].album.name); // nombre de cancion
+                    console.log("preview link of the song from Spotify: " + data.tracks.items[i].album.external_urls.spotify);
+                    console.log("song name: " + data.tracks.items[i].name);
+                }
+            }   
+        });
+
 }
